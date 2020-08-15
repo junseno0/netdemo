@@ -8,6 +8,7 @@
 
 int main() {
     int serv_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
 	/*
 	 *struct sockaddr_in{
         sa_family_t     sin_family;   //地址族（Address Family），也就是地址类型

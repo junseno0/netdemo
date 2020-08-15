@@ -19,7 +19,6 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 	int serv_sock;
-	int count = 5;
 	int msglen = 0;
 	struct sockaddr_in serv_addr;
 	struct sockaddr_in client_addr;
@@ -35,12 +34,16 @@ int main(int argc, char *argv[]) {
 	if(bind(serv_sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1)
 		err_handling("fail to bind socket.");
 	client_addr_size = sizeof(client_addr);
-	while(count--) {
+
+	while(1) {
 		msglen = recvfrom(serv_sock, buffer, BUF_SIZE, 0,(struct sockaddr*)&client_addr,\
 				&client_addr_size);
+		buffer[msglen] = '\0';
+		printf("Message from client: %s", buffer);
 		sendto(serv_sock, buffer, msglen, 0, (struct sockaddr*)&client_addr,\
 			   	client_addr_size);
 	}
+
 	close(serv_sock);
 	return 0;
 }

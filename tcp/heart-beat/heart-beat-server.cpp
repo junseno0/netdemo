@@ -48,7 +48,7 @@ public:
     Server(int port);
     ~Server();
     void Bind();
-    void Listen(int queue_len = 20);
+    void Listen(int queue_len = 20);//kay: queue_len always <= 30
     void Accept();
     void Run();
     void Recv(int nums);
@@ -57,11 +57,12 @@ public:
 
 Server::Server(int port)
 {
+	//kay: why not use memset instead of bzero?
     bzero(&server_addr, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = htons(INADDR_ANY);
     server_addr.sin_port = htons(port);
-    // create socket to listen
+    //kay: create socket to listen, so get a listen_fd to listen
     listen_fd = socket(PF_INET, SOCK_STREAM, 0);
     if(listen_fd < 0)
     {
@@ -69,6 +70,7 @@ Server::Server(int port)
         exit(1);
     }
     int opt = 1;
+	//kay: setsockopt to reuse addr
     setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 }
 
@@ -85,6 +87,7 @@ Server::~Server()
 
 void Server::Bind()
 {
+	//kay: bind listen_fd to a specific server port
     if(-1 == (bind(listen_fd, (struct sockaddr*)&server_addr, sizeof(server_addr))))
     {
         cout << "Server Bind Failed!";
@@ -107,7 +110,7 @@ void Server::Accept()
 {
     struct sockaddr_in client_addr;
     socklen_t client_addr_len = sizeof(client_addr);
-
+	//kay: accept a client, we would get client addr and client fd.
     int new_fd = accept(listen_fd, (struct sockaddr*)&client_addr, &client_addr_len);
     if(new_fd < 0)
     {
@@ -191,13 +194,13 @@ void Server::Run()
             cout << "select() error!";
             exit(1);
         }
-
         if(nums == 0)
         {
             //cout << "select() is timeout!";
             continue;
         }
-
+		//kay: select operation. if listen_fd is set, new cient request comes.
+		//if other fd is set, some clients message comes.
         if(FD_ISSET(listen_fd, &working_set))
             Accept();   // 有新的客户端请求
         else
